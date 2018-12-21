@@ -5,6 +5,16 @@ Changelog
 
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
+Pre-Release 2.4.0a (WIP)
+--------------------------
+
+- added Soft Actor-Critic (SAC) model
+- fixed a bug in DQN where prioritized_replay_beta_iters param was not used
+- fixed DDPG that did not save target network parameters
+- fixed bug related to shape of true_reward (@abhiskk)
+- fixed example code in documentation of tf_util:Function (@JohannesAck)
+- added learning rate schedule for SAC
+
 Release 2.3.0 (2018-12-05)
 --------------------------
 
@@ -197,4 +207,4 @@ Contributors (since v2.0.0):
 ----------------------------
 In random order...
 
-Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar
+Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk @JohannesAck
