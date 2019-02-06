@@ -1,5 +1,6 @@
 import time
 import sys
+import os
 import multiprocessing
 from collections import deque
 
@@ -248,7 +249,7 @@ class PPO2(ActorCriticRLModel):
 
         return policy_loss, value_loss, policy_entropy, approxkl, clipfrac
 
-    def learn(self, total_timesteps, callback=None, seed=None, log_interval=1, tb_log_name="PPO2"):
+    def learn(self, total_timesteps, save_dir, render, callback=None, seed=None, log_interval=1, tb_log_name="PPO2"):
         # Transform to callable if needed
         self.learning_rate = get_schedule_fn(self.learning_rate)
         self.cliprange = get_schedule_fn(self.cliprange)
@@ -271,7 +272,7 @@ class PPO2(ActorCriticRLModel):
                 lr_now = self.learning_rate(frac)
                 cliprangenow = self.cliprange(frac)
                 # true_reward is the reward without discount
-                obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = runner.run()
+                obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = runner.run(render=render)
                 ep_info_buf.extend(ep_infos)
                 mb_loss_vals = []
                 if states is None:  # nonrecurrent version
@@ -328,6 +329,14 @@ class PPO2(ActorCriticRLModel):
                         logger.logkv(loss_name, loss_val)
                     logger.dumpkvs()
 
+                # save checkpoint
+                # check if save_dir exists, otherwise make new directory
+                if not os.path.exists(save_dir):
+                  os.makedirs(save_dir)
+                model_path = save_dir + str(update * self.n_batch) + "model.ckpt"
+                self.save(model_path)
+                print("Checkpoint saved")
+
                 if callback is not None:
                     # Only stop training if return value is False, not when it is None. This is for backwards
                     # compatibility with callbacks that have no return statement.
@@ -377,7 +386,7 @@ class Runner(AbstractEnvRunner):
         self.lam = lam
         self.gamma = gamma
 
-    def run(self):
+    def run(self, render=False):
         """
         Run a learning step of the model
 
@@ -407,6 +416,10 @@ class Runner(AbstractEnvRunner):
             if isinstance(self.env.action_space, gym.spaces.Box):
                 clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
             self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
+            
+            if render:
+              self.env.render()
+
             for info in infos:
                 maybe_ep_info = info.get('episode')
                 if maybe_ep_info is not None:

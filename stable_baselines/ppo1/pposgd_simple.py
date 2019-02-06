@@ -1,5 +1,6 @@
 from collections import deque
 import time
+import os
 
 import tensorflow as tf
 import numpy as np
@@ -173,7 +174,7 @@ class PPO1(ActorCriticRLModel):
                 self.compute_losses = tf_util.function([obs_ph, old_pi.obs_ph, action_ph, atarg, ret, lrmult],
                                                        losses)
 
-    def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name="PPO1"):
+    def learn(self, total_timesteps, save_dir, render, callback=None, seed=None, log_interval=100, tb_log_name="PPO1"):
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name) as writer:
             self._setup_learn(seed)
 
@@ -184,7 +185,7 @@ class PPO1(ActorCriticRLModel):
                 self.adam.sync()
 
                 # Prepare for rollouts
-                seg_gen = traj_segment_generator(self.policy_pi, self.env, self.timesteps_per_actorbatch)
+                seg_gen = traj_segment_generator(self.policy_pi, self.env, self.timesteps_per_actorbatch, render=render)
 
                 episodes_so_far = 0
                 timesteps_so_far = 0
@@ -307,7 +308,16 @@ class PPO1(ActorCriticRLModel):
                     logger.record_tabular("EpisodesSoFar", episodes_so_far)
                     logger.record_tabular("TimestepsSoFar", timesteps_so_far)
                     logger.record_tabular("TimeElapsed", time.time() - t_start)
+
+                    # save checkpoint
+                    # check if save_dir exists, otherwise make new directory
+                    if not os.path.exists(save_dir):
+                      os.makedirs(save_dir)
+                    model_path = save_dir + str(timesteps_so_far) + "model.ckpt"
+                    self.save(model_path)
+                    print("Checkpoint saved")
                     if self.verbose >= 1 and MPI.COMM_WORLD.Get_rank() == 0:
+
                         logger.dump_tabular()
 
         return self

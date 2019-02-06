@@ -509,8 +509,10 @@ class _UnvecWrapper(VecEnvWrapper):
         actions, values, states, information = self.venv.step_wait()
         return actions[0], float(values[0]), states[0], information[0]
 
-    def render(self, mode='human'):
-        return self.venv.render(mode=mode)
+    def render(self):
+        return self.venv.render()
+    #def render(self, mode='human'):
+    #   return self.venv.render(mode=mode)
 
 
 class SetVerbosity:

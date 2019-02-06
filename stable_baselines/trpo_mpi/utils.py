@@ -4,7 +4,7 @@ import numpy as np
 from stable_baselines.common.vec_env import VecEnv
 
 
-def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
+def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, render=False):
     """
     Compute target value using TD(lambda) estimator, and advantage with GAE(lambda)
 
@@ -94,6 +94,9 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
         else:
             observation, rew, done, _info = env.step(clipped_action[0])
             true_rew = rew
+        if render: 
+          env.render()
+  
         rews[i] = rew
         true_rews[i] = true_rew
         dones[i] = done
