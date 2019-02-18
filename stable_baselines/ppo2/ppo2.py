@@ -12,7 +12,7 @@ from stable_baselines import logger
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
 from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.policies import LstmPolicy, ActorCriticPolicy
-from stable_baselines.a2c.utils import total_episode_reward_logger
+from stable_baselines.a2c.utils import EpisodeStats, total_episode_reward_logger
 
 
 class PPO2(ActorCriticRLModel):
@@ -267,6 +267,8 @@ class PPO2(ActorCriticRLModel):
                 as writer:
             self._setup_learn(seed)
 
+            episode_stats = EpisodeStats(self.n_steps, self.n_envs)
+
             runner = Runner(env=self.env, model=self, n_steps=self.n_steps, gamma=self.gamma, lam=self.lam)
             self.episode_reward = np.zeros((self.n_envs,))
 
@@ -283,6 +285,7 @@ class PPO2(ActorCriticRLModel):
                 cliprangenow = self.cliprange(frac)
                 # true_reward is the reward without discount
                 obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = runner.run(render=render)
+                episode_stats.feed(true_reward, masks)
                 ep_info_buf.extend(ep_infos)
                 mb_loss_vals = []
                 if states is None:  # nonrecurrent version
@@ -336,8 +339,8 @@ class PPO2(ActorCriticRLModel):
                     logger.logkv("total_timesteps", self.num_timesteps)
                     logger.logkv("fps", fps)
                     logger.logkv("explained_variance", float(explained_var))
-                    logger.logkv('ep_rewmean', safe_mean([ep_info['r'] for ep_info in ep_info_buf]))
-                    logger.logkv('eplenmean', safe_mean([ep_info['l'] for ep_info in ep_info_buf]))
+                    logger.logkv("mean_episode_length", episode_stats.mean_length())
+                    logger.logkv("mean_episode_reward", episode_stats.mean_reward())
                     logger.logkv('time_elapsed', t_start - t_first_start)
                     for (loss_val, loss_name) in zip(loss_vals, self.loss_names):
                         logger.logkv(loss_name, loss_val)
