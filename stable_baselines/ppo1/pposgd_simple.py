@@ -326,9 +326,9 @@ class PPO1(ActorCriticRLModel):
                     # check if save_dir exists, otherwise make new directory
                     if not os.path.exists(save_dir):
                       os.makedirs(save_dir)
-                    model_path = save_dir + str(timesteps_so_far) + "model.ckpt"
+                    model_path = save_dir + str(self.num_timesteps) + "model.ckpt"
                     self.save(model_path)
-                    print("Checkpoint saved")
+                    print("Checkpoint saved to {}".format(model_path))
                     if self.verbose >= 1 and MPI.COMM_WORLD.Get_rank() == 0:
 
                         logger.dump_tabular()
@@ -353,7 +353,9 @@ class PPO1(ActorCriticRLModel):
             "action_space": self.action_space,
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action,
-            "policy_kwargs": self.policy_kwargs
+            "num_timesteps": self.num_timesteps,
+            "policy_kwargs": self.policy_kwargs,
+            "tensorboard_log": self.tensorboard_log,
         }
 
         params = self.sess.run(self.params)

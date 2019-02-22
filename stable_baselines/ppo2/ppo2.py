@@ -256,7 +256,7 @@ class PPO2(ActorCriticRLModel):
 
         return policy_loss, value_loss, policy_entropy, approxkl, clipfrac
 
-    def learn(self, total_timesteps, save_dir, render, callback=None, seed=None, log_interval=1, tb_log_name="PPO2",reset_num_timesteps=True):
+    def learn(self, total_timesteps, save_dir, render, load_path=None,callback=None, seed=None, log_interval=1, tb_log_name="PPO2",reset_num_timesteps=True):
         # Transform to callable if needed
         self.learning_rate = get_schedule_fn(self.learning_rate)
         self.cliprange = get_schedule_fn(self.cliprange)
@@ -269,6 +269,11 @@ class PPO2(ActorCriticRLModel):
 
             episode_stats = EpisodeStats(self.n_steps, self.n_envs)
 
+            #if load_path is not None:
+            #  loaded_model = self.load(load_path)
+            #  runner = Runner(env=self.env, model=loaded_model, n_steps=self.n_steps, gamma=self.gamma, lam=self.lam)
+            #  print("loaded model {}".format(loaded_model))
+            #else:
             runner = Runner(env=self.env, model=self, n_steps=self.n_steps, gamma=self.gamma, lam=self.lam)
             self.episode_reward = np.zeros((self.n_envs,))
 
@@ -350,7 +355,7 @@ class PPO2(ActorCriticRLModel):
                 # check if save_dir exists, otherwise make new directory
                 if not os.path.exists(save_dir):
                   os.makedirs(save_dir)
-                model_path = save_dir + str(update * self.n_batch) + "model.ckpt"
+                model_path = save_dir + str(self.num_timesteps) + "model.ckpt"
                 self.save(model_path)
                 print("Checkpoint saved")
 
@@ -380,6 +385,8 @@ class PPO2(ActorCriticRLModel):
             "action_space": self.action_space,
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action,
+            "num_timesteps": self.num_timesteps,
+            "tensorboard_log": self.tensorboard_log,
             "policy_kwargs": self.policy_kwargs
         }
 
