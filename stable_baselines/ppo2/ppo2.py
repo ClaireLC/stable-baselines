@@ -293,6 +293,7 @@ class PPO2(ActorCriticRLModel):
                 episode_stats.feed(true_reward, masks)
                 ep_info_buf.extend(ep_infos)
                 mb_loss_vals = []
+                prev_num_timesteps = self.num_timesteps
                 if states is None:  # nonrecurrent version
                     update_fac = self.n_batch // self.nminibatches // self.noptepochs + 1
                     inds = np.arange(self.n_batch)
@@ -357,7 +358,15 @@ class PPO2(ActorCriticRLModel):
                   os.makedirs(save_dir)
                 model_path = save_dir + str(self.num_timesteps) + "model.ckpt"
                 self.save(model_path)
-                print("Checkpoint saved")
+                print("Checkpoint {} saved".format(model_path))
+
+                # look for previously saved checkpoint, and delete it
+                prev_checkpoint_num = prev_num_timesteps
+                prev_checkpoint_file = save_dir + str(prev_checkpoint_num) + "model.ckpt"
+                print("Prev checkpoint {}".format(prev_checkpoint_num))
+                if os.path.exists(prev_checkpoint_file):
+                  os.remove(prev_checkpoint_file)
+                  print("Prev checkpoint file {} removed".format(prev_checkpoint_file))
 
                 if callback is not None:
                     # Only stop training if return value is False, not when it is None. This is for backwards
