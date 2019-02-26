@@ -361,12 +361,11 @@ class PPO2(ActorCriticRLModel):
                 print("Checkpoint {} saved".format(model_path))
 
                 # look for previously saved checkpoint, and delete it
-                prev_checkpoint_num = prev_num_timesteps
-                prev_checkpoint_file = save_dir + str(prev_checkpoint_num) + "model.ckpt"
-                print("Prev checkpoint {}".format(prev_checkpoint_num))
-                if os.path.exists(prev_checkpoint_file):
-                  os.remove(prev_checkpoint_file)
-                  print("Prev checkpoint file {} removed".format(prev_checkpoint_file))
+                #prev_checkpoint_num = prev_num_timesteps
+                #prev_checkpoint_file = save_dir + str(prev_checkpoint_num) + "model.ckpt"
+                #if os.path.exists(prev_checkpoint_file):
+                #  os.remove(prev_checkpoint_file)
+                #  print("Prev checkpoint file {} removed".format(prev_checkpoint_file))
 
                 if callback is not None:
                     # Only stop training if return value is False, not when it is None. This is for backwards
