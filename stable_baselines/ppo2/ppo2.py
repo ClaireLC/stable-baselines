@@ -360,6 +360,12 @@ class PPO2(ActorCriticRLModel):
                 self.save(model_path)
                 print("Checkpoint {} saved".format(model_path))
 
+                # Also save explained variance to a txt file
+                fname = save_dir + "explained-var.txt" 
+                fid = open(fname, "a+")
+                fid.write(str(explained_var) + "\n")
+                fid.close()
+
                 # look for previously saved checkpoint, and delete it
                 #prev_checkpoint_num = prev_num_timesteps
                 #prev_checkpoint_file = save_dir + str(prev_checkpoint_num) + "model.ckpt"
